@@ -1,5 +1,3 @@
--include config.mk
-
 STATICLIB=libimagequant.a
 SHAREDLIB=libimagequant.$(SOLIBSUFFIX)
 SOVER=0
@@ -11,6 +9,10 @@ DLLDEF=imagequant_dll.def
 JNIDLL=libimagequant.dll
 JNIDLLIMP=libimagequant_dll.a
 JNIDLLDEF=libimagequant_dll.def
+
+PREFIX  = arm-vita-eabi
+CC      = $(PREFIX)-gcc
+AR      = $(PREFIX)-ar
 
 OBJS = pam.o mediancut.o blur.o mempool.o kmeans.o nearest.o libimagequant.o
 SHAREDOBJS = $(subst .o,.lo,$(OBJS))
@@ -57,7 +59,7 @@ libimagequant.dylib: $(SHAREDOBJS)
 	$(CC) -shared -o $(SHAREDLIB).$(SOVER) $^ $(LDFLAGS)
 	ln -fs $(SHAREDLIB).$(SOVER) $(SHAREDLIB)
 
-$(OBJS): $(wildcard *.h) config.mk
+$(OBJS): $(wildcard *.h)
 
 $(JNILIB): $(JAVAHEADERS) $(STATICLIB) org/pngquant/PngQuant.c
 	$(CC) -g $(CFLAGS) $(LDFLAGS) $(JAVAINCLUDE) -shared -o $@ $(STATICLIB) org/pngquant/PngQuant.c
@@ -100,9 +102,6 @@ clean:
 	rm -f $(OBJS) $(SHAREDOBJS) $(SHAREDLIB).$(SOVER) $(SHAREDLIB) $(STATICLIB) $(TARFILE) $(DLL) '$(DLLIMP)' '$(DLLDEF)'
 	rm -f $(JAVAHEADERS) $(JAVACLASSES) $(JNILIB) example
 
-distclean: clean
-	rm -f config.mk
-
 install:
 	[ -d $(DESTDIR)$(LIBDIR) ] || mkdir -p $(DESTDIR)$(LIBDIR)
 	[ -d $(DESTDIR)$(PKGCONFIGDIR) ] || mkdir -p $(DESTDIR)$(PKGCONFIGDIR)
@@ -117,11 +116,6 @@ uninstall:
 	rm -f $(DESTDIR)$(LIBDIR)/$(SHAREDLIB)
 	rm -f $(DESTDIR)$(PKGCONFIGDIR)/imagequant.pc
 	rm -f $(DESTDIR)$(INCLUDEDIR)/libimagequant.h
-
-config.mk:
-ifeq ($(filter %clean %distclean, $(MAKECMDGOALS)), )
-	./configure
-endif
 
 .PHONY: all static shared clean dist distclean dll java cargo
 .DELETE_ON_ERROR:
